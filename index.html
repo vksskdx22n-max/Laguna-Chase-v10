@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LAGUNA CHASE v10</title>
+<title>LAGUNA CHASE v11</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -56,7 +56,7 @@ body{background:#000c1a;font-family:'Press Start 2P',monospace;color:#00e5ff;
 </head>
 <body>
 <div id="wrap">
-  <div id="title">🎣 LAGUNA CHASE 🎣<br>ENNIO E SANDRO A CACCIA DEL BRANZINO PERDUTO
+  <div id="title">🎣 LAGUNA CHASE v11 🎣<br>ENNIO E SANDRO A CACCIA DEL BRANZINO PERDUTO
     <small>Laguna di Venezia — Arcade 1986</small></div>
   <div id="hud">
     <div class="hb"><div class="hl">PUNTI</div><div class="hv" id="sc">000000</div></div>
@@ -150,12 +150,22 @@ body{background:#000c1a;font-family:'Press Start 2P',monospace;color:#00e5ff;
 var _AC=null;
 function getAC(){
   if(!_AC) _AC=new(window.AudioContext||window.webkitAudioContext)();
-  if(_AC.state!=='running') _AC.resume();
+  if(_AC.state==='suspended') _AC.resume();
   return _AC;
 }
+/* iOS Safari unlock: resume AudioContext su ogni interazione utente */
+function _iosUnlock(){
+  if(_AC && _AC.state==='suspended') _AC.resume();
+}
+document.addEventListener('touchstart',_iosUnlock,{passive:true});
+document.addEventListener('touchend',_iosUnlock,{passive:true});
+document.addEventListener('click',_iosUnlock,{passive:true});
+
 function beep(freq,dur,type,vol,delay){
   try{
-    var ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    var ac=getAC();
+    if(ac.state==='suspended'){ac.resume();}
+    var o=ac.createOscillator(),g=ac.createGain();
     o.connect(g);g.connect(ac.destination);
     o.type=type||'sine';vol=vol||0.1;delay=delay||0;
     o.frequency.setValueAtTime(freq,ac.currentTime+delay);
